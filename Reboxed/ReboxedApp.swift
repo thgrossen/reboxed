@@ -1,32 +1,43 @@
-//
-//  ReboxedApp.swift
-//  Reboxed
-//
-//  Created by Thomas Grossen on 03.05.2026.
-//
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026, Thomas Grossen
+ ******************************************************************************/
 
 import SwiftUI
 import SwiftData
 
 @main
-struct ReboxedApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+struct ReboxedApp: App
+{
+    let container: ModelContainer
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+    init()
+    {
+        do
+        {
+            container = try ModelContainerService.makeContainer()
+            ModelContainerService.seedDefaultsIfNeeded( context: container.mainContext )
         }
-    }()
+        catch
+        {
+            fatalError( "Failed to create ModelContainer: \( error )" )
+        }
+    }
 
-    var body: some Scene {
-        WindowGroup {
+    var body: some Scene
+    {
+        WindowGroup
+        {
             ContentView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer( container )
+
+        #if os(macOS)
+        Settings
+        {
+            Text( "Settings" )
+        }
+        #endif
     }
 }

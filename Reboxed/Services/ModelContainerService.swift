@@ -1,12 +1,20 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026, Thomas Grossen
+ ******************************************************************************/
+
 import SwiftData
 import Foundation
 
 @MainActor
-enum ModelContainerService {
+enum ModelContainerService
+{
     private static let cloudKitContainer = "iCloud.me.grossen.Reboxed"
 
-    static func makeContainer() throws -> ModelContainer {
-        let schema = Schema([
+    static func makeContainer() throws -> ModelContainer
+    {
+        let schema = Schema( [
             House.self,
             Room.self,
             StorageBox.self,
@@ -14,16 +22,21 @@ enum ModelContainerService {
             ItemLink.self,
             Photo.self,
             ListValue.self
-        ])
+        ] )
+        #if DEBUG
+        let config = ModelConfiguration( schema: schema )
+        #else
         let config = ModelConfiguration(
             schema: schema,
-            cloudKitDatabase: .private(cloudKitContainer)
+            cloudKitDatabase: .private( cloudKitContainer )
         )
-        return try ModelContainer(for: schema, configurations: [config])
+        #endif
+        return try ModelContainer( for: schema, configurations: [ config ] )
     }
 
-    static func makeInMemoryContainer() throws -> ModelContainer {
-        let schema = Schema([
+    static func makeInMemoryContainer() throws -> ModelContainer
+    {
+        let schema = Schema( [
             House.self,
             Room.self,
             StorageBox.self,
@@ -31,25 +44,27 @@ enum ModelContainerService {
             ItemLink.self,
             Photo.self,
             ListValue.self
-        ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try ModelContainer(for: schema, configurations: [config])
+        ] )
+        let config = ModelConfiguration( schema: schema, isStoredInMemoryOnly: true )
+        return try ModelContainer( for: schema, configurations: [ config ] )
     }
 
-    static func seedDefaultsIfNeeded(context: ModelContext) {
+    static func seedDefaultsIfNeeded( context: ModelContext )
+    {
         let descriptor = FetchDescriptor<ListValue>(
             predicate: #Predicate { $0.category == "boxType" }
         )
-        let existing = (try? context.fetch(descriptor)) ?? []
+        let existing = ( try? context.fetch( descriptor ) ) ?? []
         guard existing.isEmpty else { return }
 
-        for entry in ListValue.defaultBoxTypes {
-            context.insert(ListValue(
+        for entry in ListValue.defaultBoxTypes
+        {
+            context.insert( ListValue(
                 category: ListValue.Category.boxType,
                 value: entry.value,
                 sortOrder: entry.order,
                 isSeeded: true
-            ))
+            ) )
         }
         try? context.save()
     }

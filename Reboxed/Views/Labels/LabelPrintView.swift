@@ -1,92 +1,118 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026, Thomas Grossen
+ ******************************************************************************/
+
 import SwiftUI
 import PDFKit
 
-struct LabelPrintView: View {
-    let entries: [(uid: String, title: String)]
+struct LabelPrintView: View
+{
+    let entries: [ ( uid: String, title: String ) ]
     @State private var layout: LabelLayout = .four
     @State private var pdfData: Data?
-    @Environment(\.dismiss) private var dismiss
+    @Environment( \.dismiss ) private var dismiss
 
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                LabelLayoutPicker(selection: $layout)
-                    .padding(.vertical, 8)
+    var body: some View
+    {
+        NavigationStack
+        {
+            VStack( spacing: 0 )
+            {
+                LabelLayoutPicker( selection: $layout )
+                    .padding( .vertical, 8 )
                 Divider()
-                if let data = pdfData, let doc = PDFDocument(data: data) {
-                    PDFKitView(document: doc)
-                } else {
+                if let data = pdfData, let doc = PDFDocument( data: data )
+                {
+                    PDFKitView( document: doc )
+                }
+                else
+                {
                     ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame( maxWidth: .infinity, maxHeight: .infinity )
                 }
             }
-            .navigationTitle("Print Labels")
+            .navigationTitle( "Print Labels" )
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode( .inline )
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+            .toolbar
+            {
+                ToolbarItem( placement: .cancellationAction )
+                {
+                    Button( "Close" ) { dismiss() }
                 }
-                if let data = pdfData {
-                    ToolbarItem(placement: .primaryAction) {
+                if let data = pdfData
+                {
+                    ToolbarItem( placement: .primaryAction )
+                    {
                         ShareLink(
                             item: data,
-                            preview: SharePreview("Labels.pdf", image: Image(systemName: "doc.richtext"))
+                            preview: SharePreview( "Labels.pdf", image: Image( systemName: "doc.richtext" ) )
                         )
                     }
                 }
             }
-            .onChange(of: layout) { generatePDF() }
+            .onChange( of: layout ) { generatePDF() }
             .onAppear { generatePDF() }
         }
     }
 
-    private func generatePDF() {
-        pdfData = PDFLabelService.generate(entries: entries, layout: layout)
+    private func generatePDF()
+    {
+        pdfData = PDFLabelService.generate( entries: entries, layout: layout )
     }
 }
 
 // MARK: - PDFKit wrapper
 
-struct PDFKitView: View {
+struct PDFKitView: View
+{
     let document: PDFDocument
 
-    var body: some View {
+    var body: some View
+    {
         #if os(iOS)
-        PDFKitRepresentable(document: document)
+        PDFKitRepresentable( document: document )
         #else
-        PDFKitRepresentable(document: document)
+        PDFKitRepresentable( document: document )
         #endif
     }
 }
 
 #if os(iOS)
 import UIKit
-struct PDFKitRepresentable: UIViewRepresentable {
+struct PDFKitRepresentable: UIViewRepresentable
+{
     let document: PDFDocument
-    func makeUIView(context: Context) -> PDFView {
+    func makeUIView( context: Context ) -> PDFView
+    {
         let view = PDFView()
         view.document = document
         view.autoScales = true
         view.displayMode = .singlePage
         return view
     }
-    func updateUIView(_ uiView: PDFView, context: Context) {
+    func updateUIView( _ uiView: PDFView, context: Context )
+    {
         uiView.document = document
     }
 }
 #else
 import AppKit
-struct PDFKitRepresentable: NSViewRepresentable {
+struct PDFKitRepresentable: NSViewRepresentable
+{
     let document: PDFDocument
-    func makeNSView(context: Context) -> PDFView {
+    func makeNSView( context: Context ) -> PDFView
+    {
         let view = PDFView()
         view.document = document
         view.autoScales = true
         return view
     }
-    func updateNSView(_ nsView: PDFView, context: Context) {
+    func updateNSView( _ nsView: PDFView, context: Context )
+    {
         nsView.document = document
     }
 }

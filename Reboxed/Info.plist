@@ -6,5 +6,11 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Reboxed uses the camera to scan QR codes on boxes and items.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Reboxed accesses your photo library to attach photos to inventory items.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Reboxed uses your location to detect when a box or item has been moved to a new place.</string>
 </dict>
 </plist>

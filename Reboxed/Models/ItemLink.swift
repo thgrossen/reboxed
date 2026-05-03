@@ -1,17 +1,25 @@
-import SwiftData
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026, Thomas Grossen
+ ******************************************************************************/
+
 import Foundation
+import SwiftData
 
 @Model
-final class ItemLink {
-    var createdAt: Date = Date()
-    var note: String = ""
+final class ItemLink
+{
+    var createdAt:  Date   = Date()
+    var note:       String = ""
 
     var sourceItem: Item?
     var targetItem: Item?
 
-    init(source: Item, target: Item, note: String = "") {
+    init( source: Item, target: Item, note: String = "" )
+    {
         self.sourceItem = source
         self.targetItem = target
-        self.note = note
+        self.note       = note
     }
 }

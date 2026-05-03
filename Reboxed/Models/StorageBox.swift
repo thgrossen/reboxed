@@ -1,16 +1,23 @@
-import SwiftData
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026, Thomas Grossen
+ ******************************************************************************/
+
 import Foundation
+import SwiftData
 
 @Model
-final class StorageBox {
-    var uid: String = ""
-    var title: String = ""
-    var descriptionText: String = ""
-    var boxType: String = ""
-    var tags: [String] = []
-    var owner: String = ""
-    var createdAt: Date = Date()
-    var modifiedAt: Date = Date()
+final class StorageBox
+{
+    var uid:                String      = ""
+    var title:              String      = ""
+    var descriptionText:    String      = ""
+    var boxType:            String      = ""
+    var tags:               [ String ]  = []
+    var owner:              String      = ""
+    var createdAt:          Date        = Date()
+    var modifiedAt:         Date        = Date()
 
     // Current location (set one of these)
     var house: House?
@@ -20,19 +27,26 @@ final class StorageBox {
     var destinationHouse: House?
     var destinationRoom: Room?
 
-    @Relationship(deleteRule: .cascade, inverse: \Item.storageBox)
-    var items: [Item]? = []
+    @Relationship( deleteRule: .cascade, inverse: \Item.storageBox )     var items: [ Item ]? = []
 
-    @Relationship(deleteRule: .cascade, inverse: \Photo.storageBox)
-    var photos: [Photo]? = []
+    @Relationship( deleteRule: .cascade, inverse: \Photo.storageBox )     var photos: [ Photo ]? = []
 
-    init() {
-        uid = UIDService.generate(for: .box)
+    init()
+    {
+        self.uid = UIDService.generate( for: .box )
     }
 
-    var currentLocationName: String {
-        if let room { return "\(room.house?.title ?? "") › \(room.title)" }
-        if let house { return house.title }
+    var currentLocationName: String
+    {
+        if let room
+        {
+            return "\( room.house?.title ?? "" ) › \( room.title )"
+        }
+        if let house
+        {
+            return house.title
+        }
+
         return ""
     }
 }

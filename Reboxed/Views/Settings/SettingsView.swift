@@ -10,6 +10,7 @@ import SwiftData
 struct SettingsView: View
 {
     @Environment( \.modelContext ) private var modelContext
+    @AppStorage( "labelPaperSize" ) private var paperSizeRaw: String = PaperSize.a4.rawValue
     @State private var showPlaces                    = false
     @State private var showResetInventoryConfirm1    = false
     @State private var showResetInventoryConfirm2    = false
@@ -22,6 +23,16 @@ struct SettingsView: View
         {
             Form
             {
+                Section( "Printing" )
+                {
+                    Picker( "Paper Size", selection: $paperSizeRaw )
+                    {
+                        ForEach( PaperSize.allCases, id: \.rawValue )
+                        {
+                            Text( $0.rawValue ).tag( $0.rawValue )
+                        }
+                    }
+                }
                 Section( "Manage" )
                 {
                     Button( "Places" ) { showPlaces = true }

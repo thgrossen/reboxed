@@ -15,32 +15,45 @@ import AppKit
 
 enum PDFLabelService
 {
-    static func generate( entries: [ ( uid: String, title: String, number: Int? ) ], layout: LabelLayout ) -> Data?
+    static func generate(
+        entries: [ ( uid: String, title: String, number: Int? ) ],
+        config: LabelLayoutConfig
+    ) -> Data?
     {
         #if canImport(UIKit)
-        return generateiOS( entries: entries, layout: layout )
+        return generateiOS( entries: entries, config: config )
         #else
-        return generatemacOS( entries: entries, layout: layout )
+        return generatemacOS( entries: entries, config: config )
         #endif
     }
 
     // MARK: iOS
 
     #if canImport(UIKit)
-    private static func generateiOS( entries: [ ( uid: String, title: String, number: Int? ) ], layout: LabelLayout ) -> Data?
+    private static func generateiOS(
+        entries: [ ( uid: String, title: String, number: Int? ) ],
+        config: LabelLayoutConfig
+    ) -> Data?
     {
-        let pageRect = CGRect( x: 0, y: 0, width: LabelLayout.a4Width, height: LabelLayout.a4Height )
+        let pageRect = CGRect( x: 0, y: 0, width: config.pageWidth, height: config.pageHeight )
         let renderer = UIGraphicsPDFRenderer( bounds: pageRect )
-        return renderer.pdfData { ctx in
-            ctx.beginPage()
-            for ( index, entry ) in entries.prefix( layout.rawValue ).enumerated()
+        return renderer.pdfData
+        { ctx in
+            var index = 0
+            while index < entries.count
             {
-                let col = index % layout.columns
-                let row = index / layout.columns
-                let x = LabelLayout.margin + CGFloat( col ) * ( layout.labelWidth + LabelLayout.gap )
-                let y = LabelLayout.margin + CGFloat( row ) * ( layout.labelHeight + LabelLayout.gap )
-                let rect = CGRect( x: x, y: y, width: layout.labelWidth, height: layout.labelHeight )
-                drawLabel( entry: entry, in: rect, context: ctx.cgContext, layout: layout )
+                ctx.beginPage()
+                let pageEntries = entries[ index ..< min( index + config.labelsPerPage, entries.count ) ]
+                for ( slot, entry ) in pageEntries.enumerated()
+                {
+                    let col = slot % config.columns
+                    let row = slot / config.columns
+                    let x = LabelLayoutConfig.margin + CGFloat( col ) * ( config.labelWidth  + LabelLayoutConfig.gap )
+                    let y = LabelLayoutConfig.margin + CGFloat( row ) * ( config.labelHeight + LabelLayoutConfig.gap )
+                    let rect = CGRect( x: x, y: y, width: config.labelWidth, height: config.labelHeight )
+                    drawLabel( entry: entry, in: rect, context: ctx.cgContext, config: config )
+                }
+                index += config.labelsPerPage
             }
         }
     }
@@ -49,12 +62,11 @@ enum PDFLabelService
         entry: ( uid: String, title: String, number: Int? ),
         in rect: CGRect,
         context: CGContext,
-        layout: LabelLayout
+        config: LabelLayoutConfig
     )
     {
         context.saveGState()
 
-        // Border
         context.setStrokeColor( UIColor.separator.cgColor )
         context.setLineWidth( 0.5 )
         context.stroke( rect.insetBy( dx: 2, dy: 2 ) )
@@ -76,12 +88,12 @@ enum PDFLabelService
         let textX     = qrRect.maxX + padding
         let textWidth = rect.maxX - textX - padding
 
+        let n = config.labelsPerPage
         if let number = entry.number
         {
-            // Box label: large number + small title + tiny UID
             let numberFontSize: CGFloat = qrSize * 0.58
-            let titleFontSize: CGFloat  = layout.rawValue <= 4 ? 9 : ( layout.rawValue <= 8 ? 7 : 6 )
-            let uidFontSize: CGFloat    = layout.rawValue <= 4 ? 7 : ( layout.rawValue <= 8 ? 6 : 5 )
+            let titleFontSize: CGFloat  = n <= 4 ? 9 : n <= 8 ? 7 : 6
+            let uidFontSize: CGFloat    = n <= 4 ? 7 : n <= 8 ? 6 : 5
 
             let numberAttrs: [ NSAttributedString.Key: Any ] = [
                 .font: UIFont.systemFont( ofSize: numberFontSize, weight: .bold )
@@ -95,8 +107,8 @@ enum PDFLabelService
             ]
 
             let numberStr = NSAttributedString( string: "\( number )", attributes: numberAttrs )
-            let titleStr  = NSAttributedString( string: entry.title, attributes: titleAttrs )
-            let uidStr    = NSAttributedString( string: entry.uid,   attributes: uidAttrs )
+            let titleStr  = NSAttributedString( string: entry.title,   attributes: titleAttrs )
+            let uidStr    = NSAttributedString( string: entry.uid,     attributes: uidAttrs )
 
             let numberBounds = numberStr.boundingRect(
                 with: CGSize( width: textWidth, height: rect.height ),
@@ -118,9 +130,8 @@ enum PDFLabelService
         }
         else
         {
-            // Standard label: title + UID
-            let titleFontSize: CGFloat = layout.rawValue <= 4 ? 11 : ( layout.rawValue <= 8 ? 9 : 7 )
-            let uidFontSize: CGFloat   = layout.rawValue <= 4 ? 8  : ( layout.rawValue <= 8 ? 7 : 6 )
+            let titleFontSize: CGFloat = n <= 4 ? 11 : n <= 8 ? 9 : 7
+            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7 : 6
 
             let titleAttrs: [ NSAttributedString.Key: Any ] = [
                 .font: UIFont.systemFont( ofSize: titleFontSize, weight: .semibold )
@@ -151,23 +162,37 @@ enum PDFLabelService
     // MARK: macOS
 
     #if os(macOS)
-    private static func generatemacOS( entries: [ ( uid: String, title: String, number: Int? ) ], layout: LabelLayout ) -> Data?
+    private static func generatemacOS(
+        entries: [ ( uid: String, title: String, number: Int? ) ],
+        config: LabelLayoutConfig
+    ) -> Data?
     {
         let data = NSMutableData()
-        var mediaBox = CGRect( origin: .zero, size: CGSize( width: LabelLayout.a4Width, height: LabelLayout.a4Height ) )
-        guard let ctx = CGContext( consumer: CGDataConsumer( data: data as CFMutableData )!,
-                                   mediaBox: &mediaBox, nil ) else { return nil }
-        ctx.beginPDFPage( nil )
-        for ( index, entry ) in entries.prefix( layout.rawValue ).enumerated()
+        var mediaBox = CGRect( origin: .zero, size: CGSize( width: config.pageWidth, height: config.pageHeight ) )
+        guard let ctx = CGContext(
+            consumer: CGDataConsumer( data: data as CFMutableData )!,
+            mediaBox: &mediaBox, nil
+        )
+        else { return nil }
+
+        var index = 0
+        while index < entries.count
         {
-            let col = index % layout.columns
-            let row = index / layout.columns
-            let x = LabelLayout.margin + CGFloat( col ) * ( layout.labelWidth + LabelLayout.gap )
-            let y = LabelLayout.margin + CGFloat( row ) * ( layout.labelHeight + LabelLayout.gap )
-            let rect = CGRect( x: x, y: y, width: layout.labelWidth, height: layout.labelHeight )
-            drawLabelMac( entry: entry, in: rect, context: ctx, layout: layout )
+            ctx.beginPDFPage( nil )
+            let pageEntries = entries[ index ..< min( index + config.labelsPerPage, entries.count ) ]
+            for ( slot, entry ) in pageEntries.enumerated()
+            {
+                let col = slot % config.columns
+                let row = slot / config.columns
+                let x = LabelLayoutConfig.margin + CGFloat( col ) * ( config.labelWidth  + LabelLayoutConfig.gap )
+                let y = LabelLayoutConfig.margin + CGFloat( row ) * ( config.labelHeight + LabelLayoutConfig.gap )
+                let rect = CGRect( x: x, y: y, width: config.labelWidth, height: config.labelHeight )
+                drawLabelMac( entry: entry, in: rect, context: ctx, config: config )
+            }
+            ctx.endPDFPage()
+            index += config.labelsPerPage
         }
-        ctx.endPDFPage()
+
         ctx.closePDF()
         return data as Data
     }
@@ -176,7 +201,7 @@ enum PDFLabelService
         entry: ( uid: String, title: String, number: Int? ),
         in rect: CGRect,
         context ctx: CGContext,
-        layout: LabelLayout
+        config: LabelLayoutConfig
     )
     {
         ctx.saveGState()
@@ -205,11 +230,12 @@ enum PDFLabelService
         let nsCtx = NSGraphicsContext( cgContext: ctx, flipped: false )
         NSGraphicsContext.current = nsCtx
 
+        let n = config.labelsPerPage
         if let number = entry.number
         {
             let numberFontSize: CGFloat = qrSize * 0.58
-            let titleFontSize: CGFloat  = layout.rawValue <= 4 ? 9 : ( layout.rawValue <= 8 ? 7 : 6 )
-            let uidFontSize: CGFloat    = layout.rawValue <= 4 ? 7 : ( layout.rawValue <= 8 ? 6 : 5 )
+            let titleFontSize: CGFloat  = n <= 4 ? 9 : n <= 8 ? 7 : 6
+            let uidFontSize: CGFloat    = n <= 4 ? 7 : n <= 8 ? 6 : 5
 
             let numberStr = NSAttributedString( string: "\( number )", attributes: [
                 .font: NSFont.systemFont( ofSize: numberFontSize, weight: .bold )
@@ -236,8 +262,8 @@ enum PDFLabelService
         }
         else
         {
-            let titleFontSize: CGFloat = layout.rawValue <= 4 ? 11 : ( layout.rawValue <= 8 ? 9 : 7 )
-            let uidFontSize: CGFloat   = layout.rawValue <= 4 ? 8  : ( layout.rawValue <= 8 ? 7 : 6 )
+            let titleFontSize: CGFloat = n <= 4 ? 11 : n <= 8 ? 9 : 7
+            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7 : 6
 
             let titleStr = NSAttributedString( string: entry.title, attributes: [
                 .font: NSFont.systemFont( ofSize: titleFontSize, weight: .semibold )

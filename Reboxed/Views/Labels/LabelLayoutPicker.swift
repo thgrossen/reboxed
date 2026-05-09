@@ -6,62 +6,70 @@
 
 import SwiftUI
 
-enum LabelLayout: Int, CaseIterable, Identifiable
+enum PaperSize: String, CaseIterable
 {
-    case two = 2, four = 4, six = 6, eight = 8, twelve = 12, sixteen = 16
+    case a4     = "A4"
+    case a5     = "A5"
+    case letter = "Letter"
+    case legal  = "Legal"
 
-    var id: Int { rawValue }
-
-    var columns: Int
+    var portraitWidth: CGFloat
     {
         switch self
         {
-        case .two: return 1
-        case .four, .six, .eight: return 2
-        case .twelve: return 3
-        case .sixteen: return 4
+        case .a4:     return 595
+        case .a5:     return 420
+        case .letter: return 612
+        case .legal:  return 612
         }
     }
 
-    var rows: Int { rawValue / columns }
-
-    var displayName: String { "\( rawValue )/page" }
-
-    static let a4Width: CGFloat = 595
-    static let a4Height: CGFloat = 842
-    static let margin: CGFloat = 36
-    static let gap: CGFloat = 4
-
-    var labelWidth: CGFloat
+    var portraitHeight: CGFloat
     {
-        ( Self.a4Width - Self.margin * 2 - Self.gap * CGFloat( columns - 1 ) ) / CGFloat( columns )
-    }
-    var labelHeight: CGFloat
-    {
-        ( Self.a4Height - Self.margin * 2 - Self.gap * CGFloat( rows - 1 ) ) / CGFloat( rows )
+        switch self
+        {
+        case .a4:     return 842
+        case .a5:     return 595
+        case .letter: return 792
+        case .legal:  return 1008
+        }
     }
 }
 
-struct LabelLayoutPicker: View
+struct LabelLayoutConfig
 {
-    @Binding var selection: LabelLayout
+    var labelsPerPage: Int
+    var paperSize: PaperSize
 
-    var body: some View
+    var isLandscape: Bool { labelsPerPage == 1 }
+
+    var pageWidth:  CGFloat { isLandscape ? paperSize.portraitHeight : paperSize.portraitWidth }
+    var pageHeight: CGFloat { isLandscape ? paperSize.portraitWidth  : paperSize.portraitHeight }
+
+    var columns: Int
     {
-        ScrollView( .horizontal, showsIndicators: false )
-        {
-            HStack( spacing: 8 )
-            {
-                ForEach( LabelLayout.allCases ) { layout in
-                    Button( layout.displayName )
-                    {
-                        selection = layout
-                    }
-                    .buttonStyle( .bordered )
-                    .tint( selection == layout ? Color.accentColor : Color.secondary )
-                }
-            }
-            .padding( .horizontal )
-        }
+        if labelsPerPage <= 3 { return 1 }
+        if labelsPerPage <= 8 { return 2 }
+        return 3
+    }
+
+    var rows: Int { Int( ceil( Double( labelsPerPage ) / Double( columns ) ) ) }
+
+    static let margin: CGFloat = 36
+    static let gap:    CGFloat = 4
+
+    var labelWidth: CGFloat
+    {
+        ( pageWidth - Self.margin * 2 - Self.gap * CGFloat( columns - 1 ) ) / CGFloat( columns )
+    }
+
+    var labelHeight: CGFloat
+    {
+        ( pageHeight - Self.margin * 2 - Self.gap * CGFloat( rows - 1 ) ) / CGFloat( rows )
+    }
+
+    var orientationLabel: String
+    {
+        "\( paperSize.rawValue ) · \( isLandscape ? "Landscape" : "Portrait" )"
     }
 }

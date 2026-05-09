@@ -10,9 +10,30 @@ import PDFKit
 struct LabelPrintView: View
 {
     let entries: [ ( uid: String, title: String, number: Int? ) ]
-    @State private var layout: LabelLayout = .four
+
+    @AppStorage( "labelsPerPage" )  private var labelsPerPage: Int    = 4
+    @AppStorage( "labelPaperSize" ) private var paperSizeRaw: String  = PaperSize.a4.rawValue
+
+    @State private var quantities: [ Int ] = []
     @State private var pdfData: Data?
     @Environment( \.dismiss ) private var dismiss
+
+    private var paperSize: PaperSize
+    {
+        PaperSize( rawValue: paperSizeRaw ) ?? .a4
+    }
+
+    private var config: LabelLayoutConfig
+    {
+        LabelLayoutConfig( labelsPerPage: max( 1, labelsPerPage ), paperSize: paperSize )
+    }
+
+    private var expandedEntries: [ ( uid: String, title: String, number: Int? ) ]
+    {
+        zip( entries, quantities ).flatMap { entry, qty in
+            Array( repeating: entry, count: max( 1, qty ) )
+        }
+    }
 
     var body: some View
     {
@@ -20,9 +41,51 @@ struct LabelPrintView: View
         {
             VStack( spacing: 0 )
             {
-                LabelLayoutPicker( selection: $layout )
-                    .padding( .vertical, 8 )
+                // Controls
+                VStack( spacing: 6 )
+                {
+                    Stepper( "Labels per page: \( labelsPerPage )", value: $labelsPerPage, in: 1...50 )
+                        .padding( .horizontal )
+                    Text( config.orientationLabel )
+                        .font( .caption )
+                        .foregroundStyle( .secondary )
+                }
+                .padding( .vertical, 10 )
+
                 Divider()
+
+                // Per-entry quantities
+                List
+                {
+                    ForEach( entries.indices, id: \.self ) { index in
+                        HStack
+                        {
+                            VStack( alignment: .leading, spacing: 2 )
+                            {
+                                if let number = entries[ index ].number
+                                {
+                                    Text( "\( number )  \( entries[ index ].title )" )
+                                }
+                                else
+                                {
+                                    Text( entries[ index ].title )
+                                }
+                            }
+                            Spacer()
+                            if index < quantities.count
+                            {
+                                Stepper( "\( quantities[ index ] )", value: $quantities[ index ], in: 1...99 )
+                                    .labelsHidden()
+                                    .fixedSize()
+                            }
+                        }
+                    }
+                }
+                .frame( maxHeight: CGFloat( entries.count ) * 56 + 16 )
+
+                Divider()
+
+                // PDF preview
                 if let data = pdfData, let doc = PDFDocument( data: data )
                 {
                     PDFKitView( document: doc )
@@ -54,14 +117,21 @@ struct LabelPrintView: View
                     }
                 }
             }
-            .onChange( of: layout ) { generatePDF() }
-            .onAppear { generatePDF() }
+            .onChange( of: labelsPerPage ) { generatePDF() }
+            .onChange( of: paperSizeRaw )  { generatePDF() }
+            .onChange( of: quantities )    { generatePDF() }
+            .onAppear
+            {
+                quantities = Array( repeating: 1, count: entries.count )
+                generatePDF()
+            }
         }
     }
 
     private func generatePDF()
     {
-        pdfData = PDFLabelService.generate( entries: entries, layout: layout )
+        guard quantities.count == entries.count else { return }
+        pdfData = PDFLabelService.generate( entries: expandedEntries, config: config )
     }
 }
 

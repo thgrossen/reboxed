@@ -38,6 +38,11 @@ struct RoomDetailView: View
                 }
             }
 
+            Section( "Details" )
+            {
+                LabeledContent( "Floor", value: "\( room.floor )" )
+            }
+
             Section( "QR Code" )
             {
                 HStack( spacing: 16 )
@@ -107,7 +112,7 @@ struct RoomDetailView: View
         }
         .sheet( isPresented: $showLabelPrint )
         {
-            LabelPrintView( entries: [ ( uid: room.uid, title: room.title ) ] )
+            LabelPrintView( entries: [ ( uid: room.uid, title: room.title, number: nil ) ] )
         }
     }
 

@@ -25,8 +25,8 @@ struct iPadMacRootView: View
             {
                 EmptyStateView(
                     icon: "house",
-                    title: "No House Selected",
-                    message: "Select a house from the sidebar."
+                    title: "No Place Selected",
+                    message: "Select a place from the sidebar."
                 )
             }
         }

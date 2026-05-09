@@ -8,20 +8,24 @@ import SwiftUI
 
 struct iPhoneRootView: View
 {
-    @State private var selectedTab: Tab = .houses
+    @State private var selectedTab: Tab = .items
 
     enum Tab
     {
-        case houses, relocation, search, scanner
+        case items, boxes, relocation, search, scanner, settings
     }
 
     var body: some View
     {
         TabView( selection: $selectedTab )
         {
-            HouseListView()
-                .tabItem { Label( "Houses", systemImage: "house.fill" ) }
-                .tag( Tab.houses )
+            ItemListView()
+                .tabItem { Label( "Items", systemImage: "tag.fill" ) }
+                .tag( Tab.items )
+
+            BoxListView()
+                .tabItem { Label( "Boxes", systemImage: "shippingbox.fill" ) }
+                .tag( Tab.boxes )
 
             RelocationDashboardView()
                 .tabItem { Label( "Relocation", systemImage: "arrow.triangle.swap" ) }
@@ -34,6 +38,10 @@ struct iPhoneRootView: View
             ScannerView()
                 .tabItem { Label( "Scan", systemImage: "qrcode.viewfinder" ) }
                 .tag( Tab.scanner )
+
+            SettingsView()
+                .tabItem { Label( "Settings", systemImage: "gear" ) }
+                .tag( Tab.settings )
         }
     }
 }

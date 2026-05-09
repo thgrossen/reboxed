@@ -16,6 +16,7 @@ struct SidebarView: View
     @State private var showRelocation = false
     @State private var showSearch = false
     @State private var showScanner = false
+    @State private var showSettings = false
 
     var body: some View
     {
@@ -45,6 +46,12 @@ struct SidebarView: View
                     Image( systemName: "qrcode.viewfinder" )
                 }
             }
+            ToolbarItem( placement: .automatic )
+            {
+                Button { showSettings = true } label: {
+                    Image( systemName: "gear" )
+                }
+            }
         }
         .sheet( isPresented: $showAddHouse )
         {
@@ -53,6 +60,10 @@ struct SidebarView: View
         .sheet( isPresented: $showScanner )
         {
             ScannerView()
+        }
+        .sheet( isPresented: $showSettings )
+        {
+            SettingsView()
         }
     }
 

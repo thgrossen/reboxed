@@ -14,7 +14,7 @@ struct ItemRowView: View
     {
         HStack
         {
-            Image( systemName: "cube.box" )
+            Image( systemName: "tag" )
                 .foregroundStyle( .tint )
                 .frame( width: 28 )
             VStack( alignment: .leading, spacing: 2 )

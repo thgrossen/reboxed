@@ -10,7 +10,7 @@ import SwiftData
 struct ItemListView: View
 {
     @Environment( \.modelContext ) private var modelContext
-    @Query( sort: \Item.title ) private var items: [ Item ]
+    @Query( sort: \Item.createdAt ) private var items: [ Item ]
     @State private var showAddItem        = false
     @State private var searchText         = ""
     @State private var selectedIDs: Set<PersistentIdentifier> = []

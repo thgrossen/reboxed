@@ -10,7 +10,7 @@ import SwiftData
 struct BoxListView: View
 {
     @Environment( \.modelContext ) private var modelContext
-    @Query( sort: \StorageBox.title ) private var boxes: [ StorageBox ]
+    @Query( sort: \StorageBox.boxNumber ) private var boxes: [ StorageBox ]
     @State private var showAddBox         = false
     @State private var searchText         = ""
     @State private var selectedIDs: Set<PersistentIdentifier> = []

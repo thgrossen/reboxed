@@ -71,7 +71,8 @@ enum PDFLabelService
         context.setLineWidth( 0.5 )
         context.stroke( rect.insetBy( dx: 2, dy: 2 ) )
 
-        let padding: CGFloat = 6
+        let padding: CGFloat    = 6
+        let textGap: CGFloat    = 14
         let qrSize = min( rect.width * 0.38, rect.height - padding * 2 )
         let qrRect = CGRect(
             x: rect.minX + padding,
@@ -85,15 +86,15 @@ enum PDFLabelService
             context.draw( cgQR, in: qrRect )
         }
 
-        let textX     = qrRect.maxX + padding
+        let textX     = qrRect.maxX + textGap
         let textWidth = rect.maxX - textX - padding
 
         let n = config.labelsPerPage
         if let number = entry.number
         {
             let numberFontSize: CGFloat = qrSize * 0.58
-            let titleFontSize: CGFloat  = n <= 4 ? 9 : n <= 8 ? 7 : 6
-            let uidFontSize: CGFloat    = n <= 4 ? 7 : n <= 8 ? 6 : 5
+            let titleFontSize: CGFloat  = n <= 4 ? 12 : n <= 8 ? 10 : 8
+            let uidFontSize: CGFloat    = n <= 4 ? 7  : n <= 8 ? 6  : 5
 
             let numberAttrs: [ NSAttributedString.Key: Any ] = [
                 .font: UIFont.systemFont( ofSize: numberFontSize, weight: .bold )
@@ -130,8 +131,8 @@ enum PDFLabelService
         }
         else
         {
-            let titleFontSize: CGFloat = n <= 4 ? 11 : n <= 8 ? 9 : 7
-            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7 : 6
+            let titleFontSize: CGFloat = n <= 4 ? 13 : n <= 8 ? 11 : 9
+            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7  : 6
 
             let titleAttrs: [ NSAttributedString.Key: Any ] = [
                 .font: UIFont.systemFont( ofSize: titleFontSize, weight: .semibold )
@@ -210,6 +211,7 @@ enum PDFLabelService
         ctx.stroke( rect.insetBy( dx: 2, dy: 2 ) )
 
         let padding: CGFloat = 6
+        let textGap: CGFloat = 14
         let qrSize = min( rect.width * 0.38, rect.height - padding * 2 )
         let qrRect = CGRect(
             x: rect.minX + padding,
@@ -223,7 +225,7 @@ enum PDFLabelService
             ctx.draw( cgQR, in: qrRect )
         }
 
-        let textX     = qrRect.maxX + padding
+        let textX     = qrRect.maxX + textGap
         let textWidth = rect.maxX - textX - padding
 
         NSGraphicsContext.saveGraphicsState()
@@ -234,8 +236,8 @@ enum PDFLabelService
         if let number = entry.number
         {
             let numberFontSize: CGFloat = qrSize * 0.58
-            let titleFontSize: CGFloat  = n <= 4 ? 9 : n <= 8 ? 7 : 6
-            let uidFontSize: CGFloat    = n <= 4 ? 7 : n <= 8 ? 6 : 5
+            let titleFontSize: CGFloat  = n <= 4 ? 12 : n <= 8 ? 10 : 8
+            let uidFontSize: CGFloat    = n <= 4 ? 7  : n <= 8 ? 6  : 5
 
             let numberStr = NSAttributedString( string: "\( number )", attributes: [
                 .font: NSFont.systemFont( ofSize: numberFontSize, weight: .bold )
@@ -262,8 +264,8 @@ enum PDFLabelService
         }
         else
         {
-            let titleFontSize: CGFloat = n <= 4 ? 11 : n <= 8 ? 9 : 7
-            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7 : 6
+            let titleFontSize: CGFloat = n <= 4 ? 13 : n <= 8 ? 11 : 9
+            let uidFontSize: CGFloat   = n <= 4 ? 8  : n <= 8 ? 7  : 6
 
             let titleStr = NSAttributedString( string: entry.title, attributes: [
                 .font: NSFont.systemFont( ofSize: titleFontSize, weight: .semibold )

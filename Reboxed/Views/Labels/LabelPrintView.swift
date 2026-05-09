@@ -14,7 +14,7 @@ struct LabelPrintView: View
     @AppStorage( "labelsPerPage" )  private var labelsPerPage: Int    = 4
     @AppStorage( "labelPaperSize" ) private var paperSizeRaw: String  = PaperSize.a4.rawValue
 
-    @State private var quantities: [ Int ] = []
+    @State private var copiesPerLabel: Int = 1
     @State private var pdfData: Data?
     @Environment( \.dismiss ) private var dismiss
 
@@ -30,9 +30,7 @@ struct LabelPrintView: View
 
     private var expandedEntries: [ ( uid: String, title: String, number: Int? ) ]
     {
-        zip( entries, quantities ).flatMap { entry, qty in
-            Array( repeating: entry, count: max( 1, qty ) )
-        }
+        entries.flatMap { entry in Array( repeating: entry, count: max( 1, copiesPerLabel ) ) }
     }
 
     var body: some View
@@ -44,44 +42,21 @@ struct LabelPrintView: View
                 // Controls
                 VStack( spacing: 6 )
                 {
-                    Stepper( "Labels per page: \( labelsPerPage )", value: $labelsPerPage, in: 1...50 )
+                    Stepper( "Copies per label: \( copiesPerLabel )", value: $copiesPerLabel, in: 1...99 )
                         .padding( .horizontal )
+                    Picker( "Labels per page", selection: $labelsPerPage )
+                    {
+                        ForEach( [ 1, 2, 4, 8 ], id: \.self ) { n in
+                            Text( "\( n ) / page" ).tag( n )
+                        }
+                    }
+                    .pickerStyle( .segmented )
+                    .padding( .horizontal )
                     Text( config.orientationLabel )
                         .font( .caption )
                         .foregroundStyle( .secondary )
                 }
                 .padding( .vertical, 10 )
-
-                Divider()
-
-                // Per-entry quantities
-                List
-                {
-                    ForEach( entries.indices, id: \.self ) { index in
-                        HStack
-                        {
-                            VStack( alignment: .leading, spacing: 2 )
-                            {
-                                if let number = entries[ index ].number
-                                {
-                                    Text( "\( number )  \( entries[ index ].title )" )
-                                }
-                                else
-                                {
-                                    Text( entries[ index ].title )
-                                }
-                            }
-                            Spacer()
-                            if index < quantities.count
-                            {
-                                Stepper( "\( quantities[ index ] )", value: $quantities[ index ], in: 1...99 )
-                                    .labelsHidden()
-                                    .fixedSize()
-                            }
-                        }
-                    }
-                }
-                .frame( maxHeight: CGFloat( entries.count ) * 56 + 16 )
 
                 Divider()
 
@@ -117,20 +92,15 @@ struct LabelPrintView: View
                     }
                 }
             }
-            .onChange( of: labelsPerPage ) { generatePDF() }
-            .onChange( of: paperSizeRaw )  { generatePDF() }
-            .onChange( of: quantities )    { generatePDF() }
-            .onAppear
-            {
-                quantities = Array( repeating: 1, count: entries.count )
-                generatePDF()
-            }
+            .onChange( of: labelsPerPage )  { generatePDF() }
+            .onChange( of: paperSizeRaw )   { generatePDF() }
+            .onChange( of: copiesPerLabel ) { generatePDF() }
+            .onAppear { generatePDF() }
         }
     }
 
     private func generatePDF()
     {
-        guard quantities.count == entries.count else { return }
         pdfData = PDFLabelService.generate( entries: expandedEntries, config: config )
     }
 }

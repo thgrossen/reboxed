@@ -41,19 +41,15 @@ struct LabelLayoutConfig
     var labelsPerPage: Int
     var paperSize: PaperSize
 
-    var isLandscape: Bool { labelsPerPage == 1 }
+    // 1 and 4 → landscape page; 2 and 8 → portrait page
+    var isLandscape: Bool { labelsPerPage == 1 || labelsPerPage == 4 }
 
     var pageWidth:  CGFloat { isLandscape ? paperSize.portraitHeight : paperSize.portraitWidth }
     var pageHeight: CGFloat { isLandscape ? paperSize.portraitWidth  : paperSize.portraitHeight }
 
-    var columns: Int
-    {
-        if labelsPerPage <= 3 { return 1 }
-        if labelsPerPage <= 8 { return 2 }
-        return 3
-    }
-
-    var rows: Int { Int( ceil( Double( labelsPerPage ) / Double( columns ) ) ) }
+    // 1 → 1×1  2 → 1×2  4 → 2×2  8 → 2×4
+    var columns: Int { labelsPerPage <= 2 ? 1 : 2 }
+    var rows:    Int { labelsPerPage / max( 1, columns ) }
 
     static let margin: CGFloat = 36
     static let gap:    CGFloat = 4

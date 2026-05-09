@@ -8,6 +8,7 @@
 import SwiftUI
 import Vision
 import AppKit
+import UniformTypeIdentifiers
 
 struct MacScannerView: View
 {

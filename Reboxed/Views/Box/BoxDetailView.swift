@@ -33,6 +33,12 @@ struct BoxDetailView: View
                 }
             }
 
+            Section( "Location" )
+            {
+                Text( box.currentLocationName.isEmpty ? "—" : box.currentLocationName )
+                    .foregroundStyle( box.currentLocationName.isEmpty ? .secondary : .primary )
+            }
+
             Section( "Details" )
             {
                 if box.boxType.isEmpty == false
@@ -47,7 +53,21 @@ struct BoxDetailView: View
                 {
                     TagsView( tags: box.tags )
                 }
-                LabeledContent( "Location", value: box.currentLocationName )
+                if box.lengthCm > 0 || box.widthCm > 0 || box.heightCm > 0
+                {
+                    LabeledContent( "Dimensions" )
+                    {
+                        Text( "\( box.lengthCm.formatted( .number ) ) × \( box.widthCm.formatted( .number ) ) × \( box.heightCm.formatted( .number ) ) cm" )
+                    }
+                }
+                if box.isHeavy
+                {
+                    LabeledContent( "Heavy", value: "Yes" )
+                }
+                if box.isFragile
+                {
+                    LabeledContent( "Fragile", value: "Yes" )
+                }
             }
 
             Section( "QR Code" )
@@ -57,6 +77,11 @@ struct BoxDetailView: View
                     QRCodeView( uid: box.uid, size: 90 )
                     VStack( alignment: .leading, spacing: 4 )
                     {
+                        if box.boxNumber > 0
+                        {
+                            Text( "\( box.boxNumber )" )
+                                .font( .system( size: 48, weight: .bold, design: .rounded ) )
+                        }
                         Text( box.uid )
                             .font( .system( .caption, design: .monospaced ) )
                             .foregroundStyle( .secondary )
@@ -125,7 +150,7 @@ struct BoxDetailView: View
         }
         .sheet( isPresented: $showEdit )
         {
-            BoxFormView( location: .house( House() ), editBox: box )
+            BoxFormView( editBox: box )
         }
         .sheet( isPresented: $showAddItem )
         {
@@ -133,7 +158,7 @@ struct BoxDetailView: View
         }
         .sheet( isPresented: $showLabelPrint )
         {
-            LabelPrintView( entries: [ ( uid: box.uid, title: box.title ) ] )
+            LabelPrintView( entries: [ ( uid: box.uid, title: box.title, number: box.boxNumber > 0 ? box.boxNumber : nil ) ] )
         }
         .sheet( isPresented: $showDestinationPicker )
         {

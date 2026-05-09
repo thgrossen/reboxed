@@ -19,7 +19,16 @@ struct BoxRowView: View
                 .frame( width: 28 )
             VStack( alignment: .leading, spacing: 2 )
             {
-                Text( box.title.isEmpty ? "Unnamed Box" : box.title )
+                HStack( spacing: 4 )
+                {
+                    if box.boxNumber > 0
+                    {
+                        Text( "\( box.boxNumber )" )
+                            .font( .caption.bold() )
+                            .foregroundStyle( .tint )
+                    }
+                    Text( box.title.isEmpty ? "Unnamed Box" : box.title )
+                }
                 HStack( spacing: 6 )
                 {
                     if box.boxType.isEmpty == false

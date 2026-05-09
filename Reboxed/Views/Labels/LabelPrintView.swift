@@ -9,7 +9,7 @@ import PDFKit
 
 struct LabelPrintView: View
 {
-    let entries: [ ( uid: String, title: String ) ]
+    let entries: [ ( uid: String, title: String, number: Int? ) ]
     @State private var layout: LabelLayout = .four
     @State private var pdfData: Data?
     @Environment( \.dismiss ) private var dismiss

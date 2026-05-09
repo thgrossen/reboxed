@@ -11,11 +11,17 @@ import SwiftData
 final class StorageBox
 {
     var uid:                String      = ""
+    var boxNumber:          Int         = 0
     var title:              String      = ""
     var descriptionText:    String      = ""
     var boxType:            String      = ""
     var tags:               [ String ]  = []
     var owner:              String      = ""
+    var lengthCm:           Double      = 0
+    var widthCm:            Double      = 0
+    var heightCm:           Double      = 0
+    var isHeavy:            Bool        = false
+    var isFragile:          Bool        = false
     var createdAt:          Date        = Date()
     var modifiedAt:         Date        = Date()
 

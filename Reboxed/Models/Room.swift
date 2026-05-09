@@ -13,6 +13,7 @@ final class Room
     var uid:                String  = ""
     var title:              String  = ""
     var descriptionText:    String  = ""
+    var floor:              Int     = 0
     var sortOrder:          Int     = 0
     var createdAt:          Date    = Date()
     var modifiedAt:         Date    = Date()

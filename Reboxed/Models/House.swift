@@ -11,6 +11,7 @@ import SwiftData
 final class House
 {
     var uid:                String = ""
+    var hasRooms:           Bool   = true
     var title:              String = ""
     var descriptionText:    String = ""
     var street:             String = ""

@@ -21,7 +21,8 @@ enum ModelContainerService
             Item.self,
             ItemLink.self,
             Photo.self,
-            ListValue.self
+            ListValue.self,
+            BoxSizePreset.self
         ] )
         #if DEBUG
         let config = ModelConfiguration( schema: schema )
@@ -43,7 +44,8 @@ enum ModelContainerService
             Item.self,
             ItemLink.self,
             Photo.self,
-            ListValue.self
+            ListValue.self,
+            BoxSizePreset.self
         ] )
         let config = ModelConfiguration( schema: schema, isStoredInMemoryOnly: true )
         return try ModelContainer( for: schema, configurations: [ config ] )
@@ -51,21 +53,42 @@ enum ModelContainerService
 
     static func seedDefaultsIfNeeded( context: ModelContext )
     {
-        let descriptor = FetchDescriptor<ListValue>(
+        let boxTypeDescriptor = FetchDescriptor<ListValue>(
             predicate: #Predicate { $0.category == "boxType" }
         )
-        let existing = ( try? context.fetch( descriptor ) ) ?? []
-        guard existing.isEmpty else { return }
-
-        for entry in ListValue.defaultBoxTypes
+        let existingBoxTypes = ( try? context.fetch( boxTypeDescriptor ) ) ?? []
+        if existingBoxTypes.isEmpty
         {
-            context.insert( ListValue(
-                category: ListValue.Category.boxType,
-                value: entry.value,
-                sortOrder: entry.order,
-                isSeeded: true
-            ) )
+            for entry in ListValue.defaultBoxTypes
+            {
+                context.insert( ListValue(
+                    category: ListValue.Category.boxType,
+                    value: entry.value,
+                    sortOrder: entry.order,
+                    isSeeded: true
+                ) )
+            }
         }
+
+        let sizeDescriptor = FetchDescriptor<BoxSizePreset>(
+            predicate: #Predicate { $0.isSeeded == true }
+        )
+        let existingSizes = ( try? context.fetch( sizeDescriptor ) ) ?? []
+        if existingSizes.isEmpty
+        {
+            for ( index, entry ) in BoxSizePreset.defaults.enumerated()
+            {
+                context.insert( BoxSizePreset(
+                    title: entry.title,
+                    lengthCm: entry.l,
+                    widthCm: entry.w,
+                    heightCm: entry.h,
+                    sortOrder: index,
+                    isSeeded: true
+                ) )
+            }
+        }
+
         try? context.save()
     }
 }

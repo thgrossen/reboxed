@@ -15,7 +15,6 @@ struct HouseDetailView: View
     @State private var showAddRoom = false
     @State private var showAddBox = false
     @State private var showAddItem = false
-    @State private var showLabelPrint = false
 
     private var sortedRooms: [ Room ]
     {
@@ -50,20 +49,9 @@ struct HouseDetailView: View
                 }
             }
 
-            // QR Code
-            Section( "QR Code" )
+            Section( "Details" )
             {
-                HStack( spacing: 16 )
-                {
-                    QRCodeView( uid: house.uid, size: 90 )
-                    VStack( alignment: .leading, spacing: 4 )
-                    {
-                        Text( house.uid )
-                            .font( .system( .caption, design: .monospaced ) )
-                            .foregroundStyle( .secondary )
-                        Button( "Print Label" ) { showLabelPrint = true }
-                    }
-                }
+                LabeledContent( "Has Rooms", value: house.hasRooms ? "Yes" : "No" )
             }
 
             // Rooms
@@ -76,8 +64,11 @@ struct HouseDetailView: View
                     }
                 }
                 .onDelete( perform: deleteRooms )
-                Button { showAddRoom = true } label: {
-                    Label( "Add Room", systemImage: "plus" )
+                if house.hasRooms
+                {
+                    Button { showAddRoom = true } label: {
+                        Label( "Add Room", systemImage: "plus" )
+                    }
                 }
             } header: {
                 Text( "Rooms (\( sortedRooms.count ))" )
@@ -140,10 +131,6 @@ struct HouseDetailView: View
         .sheet( isPresented: $showAddRoom ) { RoomFormView( house: house ) }
         .sheet( isPresented: $showAddBox ) { BoxFormView( location: .house( house ) ) }
         .sheet( isPresented: $showAddItem ) { ItemFormView( location: .house( house ) ) }
-        .sheet( isPresented: $showLabelPrint )
-        {
-            LabelPrintView( entries: [ ( uid: house.uid, title: house.title ) ] )
-        }
     }
 
     private func deleteRooms( at offsets: IndexSet )

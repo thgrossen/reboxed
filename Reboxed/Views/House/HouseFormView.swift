@@ -21,6 +21,7 @@ struct HouseFormView: View
 
     @State private var title = ""
     @State private var descriptionText = ""
+    @State private var hasRooms = true
     @State private var street = ""
     @State private var postalCode = ""
     @State private var city = ""
@@ -43,6 +44,7 @@ struct HouseFormView: View
                     TextField( "Title (e.g. Main Home, Storage Unit)", text: $title )
                     TextField( "Description", text: $descriptionText, axis: .vertical )
                         .lineLimit( 2...4 )
+                    Toggle( "Has Rooms", isOn: $hasRooms )
                 }
                 Section( "Address" )
                 {
@@ -81,6 +83,7 @@ struct HouseFormView: View
         guard case .edit( let house ) = mode else { return }
         title = house.title
         descriptionText = house.descriptionText
+        hasRooms = house.hasRooms
         street = house.street
         postalCode = house.postalCode
         city = house.city
@@ -95,6 +98,7 @@ struct HouseFormView: View
             let house = House()
             house.title = title.trimmingCharacters( in: .whitespaces )
             house.descriptionText = descriptionText
+            house.hasRooms = hasRooms
             house.street = street
             house.postalCode = postalCode
             house.city = city
@@ -103,6 +107,7 @@ struct HouseFormView: View
         case .edit( let house ):
             house.title = title.trimmingCharacters( in: .whitespaces )
             house.descriptionText = descriptionText
+            house.hasRooms = hasRooms
             house.street = street
             house.postalCode = postalCode
             house.city = city

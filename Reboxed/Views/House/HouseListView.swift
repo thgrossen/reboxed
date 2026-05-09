@@ -12,6 +12,9 @@ struct HouseListView: View
     @Environment( \.modelContext ) private var modelContext
     @Query( sort: \House.title ) private var houses: [ House ]
     @State private var showAddHouse = false
+    @State private var showAddRoom  = false
+    @State private var showAddBox   = false
+    @State private var showAddItem  = false
 
     var body: some View
     {
@@ -24,7 +27,7 @@ struct HouseListView: View
                     EmptyStateView(
                         icon: "house",
                         title: "No Places",
-                        message: "Add a house, flat, or storage unit to get started."
+                        message: "Add a place, flat, or storage unit to get started."
                     )
                 }
                 else
@@ -50,15 +53,21 @@ struct HouseListView: View
             {
                 ToolbarItem( placement: .primaryAction )
                 {
-                    Button { showAddHouse = true } label: {
+                    Menu
+                    {
+                        Button( "Place" )  { showAddHouse = true }
+                        Button( "Room" )   { showAddRoom  = true }
+                        Button( "Box" )    { showAddBox   = true }
+                        Button( "Item" )   { showAddItem  = true }
+                    } label: {
                         Image( systemName: "plus" )
                     }
                 }
             }
-            .sheet( isPresented: $showAddHouse )
-            {
-                HouseFormView( mode: .create )
-            }
+            .sheet( isPresented: $showAddHouse ) { HouseFormView( mode: .create ) }
+            .sheet( isPresented: $showAddRoom )  { RoomFormView() }
+            .sheet( isPresented: $showAddBox )   { BoxFormView() }
+            .sheet( isPresented: $showAddItem )  { ItemFormView() }
         }
     }
 

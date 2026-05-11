@@ -34,36 +34,34 @@ struct DestinationPickerView: View
                 Section( "Select a place" )
                 {
                     ForEach( houses ) { house in
-                        DisclosureGroup
+                        if house.hasRooms == false
                         {
-                            let rooms = ( house.rooms ?? [] ).sorted { $0.sortOrder < $1.sortOrder }
-                            if rooms.isEmpty
+                            Button
                             {
-                                Text( "No rooms — will arrive at place level" )
-                                    .font( .caption )
-                                    .foregroundStyle( .secondary )
-                                    .padding( .leading )
+                                destinationHouse = house
+                                destinationRoom  = nil
+                                dismiss()
+                            } label: {
+                                HouseRowView( house: house )
                             }
-                            else
+                            .foregroundStyle( .primary )
+                        }
+                        else
+                        {
+                            DisclosureGroup
                             {
-                                Button( "Anywhere in \( house.title )" )
-                                {
-                                    destinationHouse = house
-                                    destinationRoom = nil
-                                    dismiss()
-                                }
+                                let rooms = ( house.rooms ?? [] ).sorted { $0.sortOrder < $1.sortOrder }
                                 ForEach( rooms ) { room in
                                     Button( room.title )
                                     {
                                         destinationHouse = house
-                                        destinationRoom = room
+                                        destinationRoom  = room
                                         dismiss()
                                     }
-                                    .padding( .leading )
                                 }
+                            } label: {
+                                HouseRowView( house: house )
                             }
-                        } label: {
-                            HouseRowView( house: house )
                         }
                     }
                 }
